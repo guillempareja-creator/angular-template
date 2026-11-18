@@ -5,7 +5,7 @@
     }
   },
   "eslint.useFlatConfig": true,
-  "eslint.validate": ["javascript", "typescript", "html", "json"],
+  "eslint.validate": ["javascript", "typescript", "html"],
   "eslint.run": "onType",
   "eslint.format.enable": true,
   "stylelint.validate": ["css", "scss"],

@@ -29,7 +29,7 @@ bun.lockb
 !.vscode/extensions.json
 .history/*
 
-# Claude Code (los comandos compartidos sí se versionan)
+# Claude Code (shared commands are versioned)
 .claude/settings.local.json
 
 # Miscellaneous
@@ -37,6 +37,9 @@ bun.lockb
 .sass-cache/
 /connect.lock
 /coverage
+/playwright-report
+/test-results
+/blob-report
 /libpeerconnection.log
 testem.log
 /typings
