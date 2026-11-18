@@ -2,10 +2,14 @@
   "common": {
     "cancel": "Cancelar",
     "accept": "Aceptar",
+    "close": "Cerrar",
     "logout": "Salir"
   },
   "app": {
     "name": "App Template"
+  },
+  "notifications": {
+    "regionLabel": "Notificaciones"
   },
   "httpRequest": {
     "error": {
@@ -14,10 +18,11 @@
       "default": "Se ha producido un error."
     },
     "warning": {
-      "customWarning": "Esta es una alerta de prueba con mensaje custom del backend."
+      "customWarning": "Esta es una alerta de prueba con mensaje custom del backend.",
+      "default": "La operación se ha completado con avisos."
     },
     "success": {
-      "customSuccess": "Esta es una respuesta de éxito custom.",
+      "exampleUpdated": "Elemento actualizado correctamente.",
       "default": "Operación realizada con éxito."
     }
   },

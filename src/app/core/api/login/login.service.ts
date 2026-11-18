@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import type { LoginRequest, LoginResponse } from './login.types';
 
+export const LOGIN_URL = '/login';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -12,6 +14,6 @@ export class LoginService {
 
   // Methods
   public login(body: LoginRequest): Promise<LoginResponse> {
-    return firstValueFrom(this.http.post<LoginResponse>('/login', body));
+    return firstValueFrom(this.http.post<LoginResponse>(LOGIN_URL, body));
   }
 }

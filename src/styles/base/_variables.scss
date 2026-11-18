@@ -54,7 +54,7 @@ $color-success-500: #00856a;
 $color-success-150: #9dded1;
 $color-success-100: #c6ece4;
 $color-success-50: #eafbf7;
-$color-success-20: #fff5f7;
+$color-success-20: #f5fdfb;
 
 // Neutral
 $color-basic-black: #000;
@@ -131,3 +131,17 @@ $border-radius-xxl: 24px;
 // ================================
 
 $transition-speed: 0.3s;
+
+// ================================
+//           Z-INDEX
+// ================================
+
+$z-index-header: 100;
+$z-index-notifications: 1000;
+$z-index-loader: 9999;
+
+// ================================
+//           SHADOWS
+// ================================
+
+$shadow-md: 0 rem(4) rem(12) rgb(0 0 0 / 15%);

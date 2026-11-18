@@ -1,37 +1,24 @@
-import {
-  type AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  inject,
-} from '@angular/core';
-import { AuthService } from '@core/services/auth.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { NgPipesModule } from 'ngx-pipes';
+import { NgStringPipesModule } from 'ngx-pipes';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-header',
-  imports: [NgPipesModule, TranslatePipe],
+  imports: [NgStringPipesModule, TranslatePipe],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HeaderComponent implements AfterViewInit {
+export class HeaderComponent {
   // Injections
-  private host = inject(ElementRef<HTMLElement>);
-  public authService = inject(AuthService);
+  private authService = inject(AuthService);
+
+  // Data
+  public session = this.authService.session;
 
   // Methods
-  public ngAfterViewInit(): void {
-    this.updateHeight();
-    window.addEventListener('resize', () => this.updateHeight());
-  }
-
-  private updateHeight(): void {
-    const height = this.host.nativeElement.offsetHeight;
-    document.documentElement.style.setProperty(
-      '--header-height',
-      `${height}px`,
-    );
+  public handleLogout(): void {
+    this.authService.logout();
   }
 }

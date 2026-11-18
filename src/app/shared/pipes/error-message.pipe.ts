@@ -1,101 +1,98 @@
 import { Pipe, type PipeTransform, inject } from '@angular/core';
-import { type AbstractControl } from '@angular/forms';
+import type { AbstractControl } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { translateText } from '@shared/utils/i18n.utils';
 
-@Pipe({ name: 'errorMessage', standalone: true, pure: false })
+type MaybeControl = AbstractControl | null | undefined;
+
+type FirstError = { key: string; value: unknown };
+
+type TranslatableError = {
+  translationTag: string;
+  interpolationParams?: Record<string, unknown>;
+};
+
+/**
+ * Angular native validators that need translation.
+ * Add more Angular native validations here (email, min, max, pattern, etc.)
+ */
+const ANGULAR_NATIVE_VALIDATORS: Readonly<Record<string, string>> = {
+  required: 'form.requiredError',
+};
+
+function isTranslatableError(value: unknown): value is TranslatableError {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'translationTag' in value &&
+    typeof value.translationTag === 'string'
+  );
+}
+
+function findFirstError(controls: MaybeControl[]): FirstError | null {
+  for (const control of controls) {
+    const errors = control?.errors;
+    const key = errors ? Object.keys(errors)[0] : undefined;
+    if (errors && key) {
+      return { key, value: errors[key] };
+    }
+  }
+
+  return null;
+}
+
+@Pipe({ name: 'errorMessage', pure: false })
 export class ErrorMessagePipe implements PipeTransform {
   // Injections
   private translate = inject(TranslateService);
 
-  /**
-   * Angular native validators that need translation
-   * Add more Angular native validations here (email, min, max, pattern, etc.)
-   */
-  private readonly ANGULAR_NATIVE_VALIDATORS: Record<string, string> = {
-    required: 'form.requiredError',
-    // Add more as needed: email, min, max, pattern, minlength, maxlength, etc.
-  };
-
-  private findFirstError(
-    controls: AbstractControl[],
-  ): { key: string; value: unknown } | null {
-    for (const control of controls) {
-      const errors = control.errors;
-      const key = errors ? Object.keys(errors)[0] : undefined;
-      if (errors && key) {
-        return { key, value: errors[key] };
-      }
-    }
-
-    return null;
-  }
-
+  // Methods
   private resolveErrorValue(errorValue: unknown): string {
-    // Plain string: custom message from parent
     if (typeof errorValue === 'string') {
       return errorValue;
     }
 
-    // Custom validators: object with translationTag and optional interpolationParams
-    if (
-      typeof errorValue === 'object' &&
-      errorValue !== null &&
-      'translationTag' in errorValue
-    ) {
-      const errorObj = errorValue as {
-        translationTag: string;
-        interpolationParams?: Record<string, unknown>;
-      };
-      return this.translate.instant(
-        errorObj.translationTag,
-        errorObj.interpolationParams,
+    if (isTranslatableError(errorValue)) {
+      return translateText(
+        this.translate,
+        errorValue.translationTag,
+        errorValue.interpolationParams,
       );
     }
 
-    // Generic fallback message
-    return this.translate.instant('form.invalidFieldError');
+    return translateText(this.translate, 'form.invalidFieldError');
   }
 
   /**
    * Returns an error message based on the first error found among one or more controls.
-   * - Accepts a single AbstractControl or an array of them.
-   * - Finds the first control that has an error and retrieves its first error key.
-   * - For Angular native validators (like 'required'), translates using i18n.
-   * - For custom validators with objects containing 'translationTag', translates them.
-   * - If errorValue is a plain string, returns it directly (for custom overrides from parent).
-   * - Supports custom error messages passed as parameter that override defaults.
+   * - Accepts a single control or an array of them (nullish entries are ignored,
+   *   so `form.get('field')` can be passed directly).
+   * - Custom messages passed as `errorMessages` override any default.
+   * - Angular native validators (like 'required') are translated from i18n.
+   * - Custom validators returning `{ translationTag, interpolationParams }` are translated.
+   * - Plain string error values are returned as-is.
    *
    * @param controls      One control or an array of controls to inspect.
-   * @param errorMessages Optional overrides e.g. { required: 'Este campo es obligatorio' }.
+   * @param errorMessages Optional overrides e.g. { required: 'Custom message' }.
    */
   public transform(
-    controls: AbstractControl | AbstractControl[],
+    controls: MaybeControl | MaybeControl[],
     errorMessages: Record<string, string> = {},
   ): string {
-    if (!controls) {
-      return '';
-    }
-
-    // Normalize to array
-    const list: AbstractControl[] = Array.isArray(controls)
-      ? controls.filter((item): item is AbstractControl => !!item)
-      : [controls];
-
-    const firstError = this.findFirstError(list);
+    const list = Array.isArray(controls) ? controls : [controls];
+    const firstError = findFirstError(list);
     if (!firstError) {
       return '';
     }
 
-    // Custom error message override
     const customMessage = errorMessages[firstError.key];
     if (customMessage) {
       return customMessage;
     }
 
-    // Angular native validators (translate from i18n)
-    const nativeTag = this.ANGULAR_NATIVE_VALIDATORS[firstError.key];
+    const nativeTag = ANGULAR_NATIVE_VALIDATORS[firstError.key];
     if (nativeTag) {
-      return this.translate.instant(nativeTag);
+      return translateText(this.translate, nativeTag);
     }
 
     return this.resolveErrorValue(firstError.value);

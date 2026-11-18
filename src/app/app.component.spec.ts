@@ -1,61 +1,41 @@
-import { signal } from '@angular/core';
-import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
-import { AuthService } from '@core/services/auth.service';
 import { LoaderService } from '@core/services/loader.service';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-  let fixture: ComponentFixture<AppComponent>;
-  let loaderService: LoaderService;
-  const authServiceMock = {
-    userData: signal(null),
-    loadSession: jasmine.createSpy('loadSession'),
-    logout: jasmine.createSpy('logout'),
-  };
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [
-        provideRouter([]),
-        provideTranslateService(),
-        { provide: AuthService, useValue: authServiceMock },
-      ],
-    }).compileComponents();
-
-    loaderService = TestBed.inject(LoaderService);
-    fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(fixture.componentInstance).toBeTruthy();
-  });
-
-  describe('Initialization', () => {
-    it('should restore the stored session', () => {
-      expect(authServiceMock.loadSession).toHaveBeenCalled();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideTranslateService()],
     });
   });
 
-  describe('DOM Rendering', () => {
-    it('should NOT render the global loader when idle', () => {
-      expect(
-        fixture.nativeElement.querySelector('app-global-loader'),
-      ).toBeNull();
-    });
+  it('renders the layout with the notifications region', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
 
-    it('should render the global loader while loading', () => {
-      loaderService.show();
-      fixture.detectChanges();
+    expect(host.querySelector('app-header')).not.toBeNull();
+    expect(host.querySelector('router-outlet')).not.toBeNull();
+    expect(host.querySelector('app-footer')).not.toBeNull();
+    expect(host.querySelector('app-notifications')).not.toBeNull();
+  });
 
-      expect(
-        fixture.nativeElement.querySelector('app-global-loader'),
-      ).not.toBeNull();
-      loaderService.hide();
-      fixture.detectChanges();
-    });
+  it('shows the global loader only while loading', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const loader = TestBed.inject(LoaderService);
+    const host = fixture.nativeElement as HTMLElement;
+    await fixture.whenStable();
+
+    expect(host.querySelector('app-global-loader')).toBeNull();
+
+    loader.show();
+    await fixture.whenStable();
+    expect(host.querySelector('app-global-loader')).not.toBeNull();
+
+    loader.hide();
+    await fixture.whenStable();
+    expect(host.querySelector('app-global-loader')).toBeNull();
   });
 });

@@ -7,7 +7,7 @@ describe('markAllControlsAsTouched', () => {
 
     markAllControlsAsTouched(control);
 
-    expect(control.touched).toBeTrue();
+    expect(control.touched).toBe(true);
   });
 
   it('should mark nested controls as touched', () => {
@@ -18,6 +18,6 @@ describe('markAllControlsAsTouched', () => {
 
     markAllControlsAsTouched(form);
 
-    expect(form.get('address.city')?.touched).toBeTrue();
+    expect(form.get('address.city')?.touched).toBe(true);
   });
 });

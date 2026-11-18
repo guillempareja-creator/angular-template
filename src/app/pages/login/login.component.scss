@@ -5,11 +5,7 @@
 }
 
 .box {
-  @include flex-center;
-
+  display: flex;
   flex-direction: column;
-}
-
-sdss-button.long {
-  margin-top: $spacing-md;
+  width: min(rem(400), 100%);
 }

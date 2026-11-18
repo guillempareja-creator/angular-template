@@ -56,3 +56,40 @@ ul {
 input {
   color: $color-basic-black;
 }
+
+input,
+select,
+textarea {
+  padding: $spacing-3xs $spacing-2xs;
+  border: 1px solid $color-neutral-300;
+  border-radius: $border-radius-sm;
+  font: inherit;
+
+  &.is-invalid {
+    border-color: $color-error-500;
+  }
+}
+
+button {
+  padding: $spacing-3xs $spacing-xs;
+  border: 1px solid $color-primary-500;
+  border-radius: $border-radius-sm;
+  background-color: $color-primary-500;
+  color: $color-basic-white;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $color-primary-600;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid $color-primary-400;
+  outline-offset: 2px;
+}
+
+.invalid-feedback {
+  color: $color-error-700;
+  font-size: rem(14);
+}

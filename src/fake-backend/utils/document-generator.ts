@@ -1,16 +1,7 @@
-/**
- * Utilidades para generar documentos en MSW
- */
-
-/**
- * Genera un PDF básico con contenido personalizable
- * @param title - Título del documento
- * @param content - Contenido del documento
- * @returns Blob del PDF generado
- */
+/** Builds a minimal valid one-page PDF, handy to mock document downloads. */
 export function generatePDF(
-  title: string = 'Documento de Ejemplo',
-  content: string = 'Contenido del documento',
+  title = 'Example document',
+  content = 'Document content',
 ): Blob {
   const pdfContent = `%PDF-1.4
 1 0 obj

@@ -1,59 +1,52 @@
+type PlainObject = Record<string, unknown>;
+
+function isPlainObject(value: unknown): value is PlainObject {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+
+function isNullish(value: unknown): boolean {
+  return value === null || value === undefined || value === '';
+}
+
+function isEmptyValue(value: unknown): boolean {
+  return (
+    isNullish(value) ||
+    (Array.isArray(value) && value.length === 0) ||
+    (isPlainObject(value) && Object.keys(value).length === 0)
+  );
+}
+
+function clean(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(clean).filter((item) => !isNullish(item));
+  }
+
+  if (!isPlainObject(value)) {
+    return value;
+  }
+
+  const result: PlainObject = {};
+  for (const [key, entry] of Object.entries(value)) {
+    const cleaned = clean(entry);
+    if (!isEmptyValue(cleaned)) {
+      result[key] = cleaned;
+    }
+  }
+
+  return result;
+}
+
 /**
- * Recursively removes empty properties from plain objects or arrays.
+ * Recursively removes empty properties (null, undefined, '', empty arrays and
+ * empty plain objects) from plain objects or arrays.
  * Leaves intact any non–plain-object instances (Date, RegExp, custom classes…).
  */
 export function removeEmptyProperties<T>(obj: T): T | Partial<T> {
-  // 1) Preserve non–plain objects (Date, RegExp, Map, custom classes…)
-  if (
-    obj !== null &&
-    typeof obj === 'object' &&
-    !Array.isArray(obj) &&
-    Object.getPrototypeOf(obj) !== Object.prototype
-  ) {
-    return obj;
-  }
-
-  // 2) Base cases for "empty"
-  if (obj == null || obj === '') {
-    return obj;
-  }
-
-  // 3) Arrays: recurse y filtra
-  if (Array.isArray(obj)) {
-    return obj
-      .map((item) => removeEmptyProperties(item))
-      .filter((item) => item != null && item !== '') as T;
-  }
-
-  // 4) Plain objects: recorre sus entries
-  if (typeof obj === 'object') {
-    return (
-      Object.entries(obj as Record<string, unknown>) as [keyof T, unknown][]
-    ).reduce((acc, [key, value]) => {
-      const cleaned = removeEmptyProperties(value as T);
-
-      // Solo los plain objects vacíos se consideran para eliminar
-      const isEmptyPlainObject =
-        typeof cleaned === 'object' &&
-        cleaned !== null &&
-        !Array.isArray(cleaned) &&
-        Object.getPrototypeOf(cleaned) === Object.prototype &&
-        Object.keys(cleaned).length === 0;
-
-      if (
-        cleaned != null &&
-        cleaned !== '' &&
-        !(Array.isArray(cleaned) && cleaned.length === 0) &&
-        !isEmptyPlainObject
-      ) {
-        acc[key] = cleaned as T[keyof T];
-      }
-      return acc;
-    }, {} as Partial<T>);
-  }
-
-  // 5) Primitives no vacíos
-  return obj;
+  return clean(obj) as T | Partial<T>;
 }
 
 /**

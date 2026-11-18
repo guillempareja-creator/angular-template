@@ -1,0 +1,56 @@
+@use 'imports' as *;
+
+:host {
+  position: fixed;
+  top: $spacing-xs;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: $z-index-notifications;
+  width: min(rem(480), calc(100% - #{$spacing-lg}));
+}
+
+.notifications {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3xs;
+}
+
+.notification {
+  @include fade-in;
+
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-3xs;
+  padding: $spacing-2xs $spacing-xs;
+  border-left: $spacing-4xs solid currentcolor;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+
+  &--success {
+    background-color: $color-success-50;
+    color: $color-success-700;
+  }
+
+  &--warning {
+    background-color: $color-warning-50;
+    color: $color-warning-800;
+  }
+
+  &--error {
+    background-color: $color-error-50;
+    color: $color-error-700;
+  }
+}
+
+.notification-message {
+  flex-grow: 1;
+  margin: 0;
+}
+
+.notification-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: $base-font-size;
+  cursor: pointer;
+}

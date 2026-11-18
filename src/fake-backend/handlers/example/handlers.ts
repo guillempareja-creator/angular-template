@@ -1,57 +1,61 @@
 import { http, HttpResponse } from 'msw';
 import { sleep } from '@shared/utils/delay.utils';
 import {
+  apiUrl,
   generatePDF,
   getDocumentHeaders,
   getWarningHeaders,
+  requireAuth,
 } from '../../utils';
 import { exampleGetMock, examplePostMock, examplePutMock } from './mocks';
-import { loginMock } from '../login';
-import { refreshTokenMock } from '../refresh-token';
-
-const VALID_TOKENS = [loginMock.token, refreshTokenMock.token];
 
 export const exampleHandlers = [
-  // GET /api/example
-  http.get('/api/example', async ({ request }) => {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
-
-    if (!token || !VALID_TOKENS.includes(token)) {
-      return new HttpResponse(null, { status: 401 });
+  // GET /example
+  http.get(apiUrl('/example'), async ({ request }) => {
+    const unauthorized = requireAuth(request);
+    if (unauthorized) {
+      return unauthorized;
     }
 
     await sleep();
-
-    return HttpResponse.json(exampleGetMock, {
-      headers: getWarningHeaders('customWarning'),
-    });
+    return HttpResponse.json(exampleGetMock);
   }),
 
-  // POST /api/example
-  http.post('/api/example', async () => {
+  // POST /example
+  http.post(apiUrl('/example'), async ({ request }) => {
+    const unauthorized = requireAuth(request);
+    if (unauthorized) {
+      return unauthorized;
+    }
+
     await sleep();
     return HttpResponse.json(examplePostMock);
   }),
 
-  // PUT /api/example/:id
-  http.put('/api/example/:id', async () => {
+  // PUT /example/:id — also demonstrates a backend warning header
+  http.put(apiUrl('/example/:id'), async ({ request }) => {
+    const unauthorized = requireAuth(request);
+    if (unauthorized) {
+      return unauthorized;
+    }
+
     await sleep();
-    return HttpResponse.json(examplePutMock);
+    return HttpResponse.json(examplePutMock, {
+      headers: getWarningHeaders('customWarning'),
+    });
   }),
 
-  // GET /api/example/document
-  http.get('/api/example/document', async () => {
+  // GET /example/document
+  http.get(apiUrl('/example/document'), async ({ request }) => {
+    const unauthorized = requireAuth(request);
+    if (unauthorized) {
+      return unauthorized;
+    }
+
     await sleep();
-
-    const pdfBlob = generatePDF();
-    const headers = getDocumentHeaders(
-      'example-document.pdf',
-      'application/pdf',
-    );
-
-    return new HttpResponse(pdfBlob, {
+    return new HttpResponse(generatePDF(), {
       status: 200,
-      headers,
+      headers: getDocumentHeaders('example-document.pdf', 'application/pdf'),
     });
   }),
 ];

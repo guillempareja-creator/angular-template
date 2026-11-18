@@ -1,79 +1,42 @@
 import { signal } from '@angular/core';
 import { type ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { AuthService } from '@core/services/auth.service';
-import type { LoginResponse } from '@core/api/login/login.types';
+import { AuthService, type Session } from '@core/services/auth.service';
 import { HeaderComponent } from './header.component';
 
 describe('HeaderComponent', () => {
+  const session = signal<Session | null>(null);
+  const authService = { session, logout: vi.fn() };
   let fixture: ComponentFixture<HeaderComponent>;
-  const authServiceMock = {
-    userData: signal<LoginResponse | null>(null),
-    logout: jasmine.createSpy('logout'),
-  };
+  let host: HTMLElement;
 
   beforeEach(async () => {
-    authServiceMock.userData.set(null);
-    authServiceMock.logout.calls.reset();
-
-    await TestBed.configureTestingModule({
-      imports: [HeaderComponent],
+    vi.resetAllMocks();
+    session.set(null);
+    TestBed.configureTestingModule({
       providers: [
         provideTranslateService(),
-        { provide: AuthService, useValue: authServiceMock },
+        { provide: AuthService, useValue: authService },
       ],
-    }).compileComponents();
-
+    });
     fixture = TestBed.createComponent(HeaderComponent);
-    fixture.detectChanges();
+    host = fixture.nativeElement as HTMLElement;
+    await fixture.whenStable();
   });
 
-  it('should create', () => {
-    expect(fixture.componentInstance).toBeTruthy();
+  it('shows the app name and no user area when anonymous', () => {
+    expect(host.querySelector('.app-name')?.textContent).toContain('app.name');
+    expect(host.querySelector('.user')).toBeNull();
   });
 
-  describe('Initialization', () => {
-    it('should expose its height as the --header-height CSS variable', () => {
-      const value =
-        document.documentElement.style.getPropertyValue('--header-height');
+  it('shows the capitalised username and logs out on click', async () => {
+    session.set({ username: 'demo', token: 't', refreshToken: 'r' });
+    await fixture.whenStable();
 
-      expect(value).toMatch(/^\d+px$/);
-    });
-  });
+    expect(host.querySelector('.user')?.textContent).toContain('Demo');
 
-  describe('DOM Rendering', () => {
-    it('should NOT render the user block without session', () => {
-      expect(
-        fixture.nativeElement.querySelector('#header-btn-logout'),
-      ).toBeNull();
-    });
+    host.querySelector<HTMLButtonElement>('#header-btn-logout')?.click();
 
-    it('should render the capitalized username with session', () => {
-      authServiceMock.userData.set({
-        username: 'john',
-        token: 't',
-        refreshToken: 'r',
-      });
-      fixture.detectChanges();
-
-      expect(fixture.nativeElement.querySelector('span').textContent).toContain(
-        'John',
-      );
-    });
-  });
-
-  describe('Buttons', () => {
-    it('should logout when clicking the logout button', () => {
-      authServiceMock.userData.set({
-        username: 'john',
-        token: 't',
-        refreshToken: 'r',
-      });
-      fixture.detectChanges();
-
-      fixture.nativeElement.querySelector('#header-btn-logout').click();
-
-      expect(authServiceMock.logout).toHaveBeenCalled();
-    });
+    expect(authService.logout).toHaveBeenCalledTimes(1);
   });
 });

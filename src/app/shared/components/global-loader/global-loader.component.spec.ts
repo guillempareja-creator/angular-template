@@ -21,7 +21,7 @@ describe('GlobalLoaderComponent', () => {
 
   describe('Initialization', () => {
     it('should block the page behind the overlay', () => {
-      expect(document.body.inert).toBeTrue();
+      expect(document.body.inert).toBe(true);
       expect(document.documentElement.style.overflow).toBe('hidden');
     });
   });
@@ -30,7 +30,7 @@ describe('GlobalLoaderComponent', () => {
     it('should release the page on destroy', () => {
       fixture.destroy();
 
-      expect(document.body.inert).toBeFalse();
+      expect(document.body.inert).toBe(false);
       expect(document.documentElement.style.overflow).toBe('');
     });
   });

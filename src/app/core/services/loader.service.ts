@@ -4,11 +4,11 @@ import { computed, Injectable, signal } from '@angular/core';
   providedIn: 'root',
 })
 export class LoaderService {
-  // Counter for active processes
-  private activeRequests = signal<number>(0);
+  // Data
+  private readonly activeRequests = signal<number>(0);
 
-  // Computed
-  public isLoading = computed(() => this.activeRequests() > 0);
+  // Computeds
+  public readonly isLoading = computed(() => this.activeRequests() > 0);
 
   // Methods
   public show(): void {

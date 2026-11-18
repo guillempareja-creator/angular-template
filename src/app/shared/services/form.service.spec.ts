@@ -1,45 +1,48 @@
 import { TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { ToastrService } from 'ngx-toastr';
+import { NotificationService } from '@core/services/notification.service';
 import { FormService } from './form.service';
 
 describe('FormService', () => {
   let service: FormService;
-  let toastrSpy: jasmine.SpyObj<ToastrService>;
-  let invalidElement: HTMLElement;
+  let notifications: NotificationService;
+  let container: HTMLElement;
 
   beforeEach(() => {
-    toastrSpy = jasmine.createSpyObj('ToastrService', ['error']);
-
     TestBed.configureTestingModule({
-      providers: [
-        provideTranslateService(),
-        { provide: ToastrService, useValue: toastrSpy },
-      ],
+      providers: [provideTranslateService()],
     });
-
     service = TestBed.inject(FormService);
-    invalidElement = document.createElement('input');
-    invalidElement.classList.add('ng-invalid');
-    spyOn(invalidElement, 'scrollIntoView');
+    notifications = TestBed.inject(NotificationService);
+    container = document.createElement('form');
+    document.body.appendChild(container);
   });
 
   afterEach(() => {
-    invalidElement.remove();
+    container.remove();
   });
 
-  it('should scroll to the first invalid element and show an error', () => {
-    document.body.appendChild(invalidElement);
+  it('focuses the first invalid control and shows the form error', () => {
+    container.innerHTML = `
+      <input id="valid" class="ng-valid" />
+      <input id="first" class="ng-invalid" />
+      <textarea id="second" class="ng-invalid"></textarea>
+    `;
 
-    service.navigateToFormError();
+    service.focusFirstInvalidControl(container);
 
-    expect(invalidElement.scrollIntoView).toHaveBeenCalled();
-    expect(toastrSpy.error).toHaveBeenCalledWith('form.globalError');
+    expect(document.activeElement?.id).toBe('first');
+    expect(notifications.notifications().at(-1)).toMatchObject({
+      type: 'error',
+      message: 'form.globalError',
+    });
   });
 
-  it('should do nothing when there are no invalid elements', () => {
-    service.navigateToFormError();
+  it('does nothing when every control is valid', () => {
+    container.innerHTML = '<input class="ng-valid" />';
 
-    expect(toastrSpy.error).not.toHaveBeenCalled();
+    service.focusFirstInvalidControl(container);
+
+    expect(notifications.notifications()).toHaveLength(0);
   });
 });

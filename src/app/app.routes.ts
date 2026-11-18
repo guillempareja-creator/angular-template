@@ -1,18 +1,20 @@
-import { type Routes } from '@angular/router';
-import { AuthGuard } from '@core/guards/auth.guard';
+import type { Routes } from '@angular/router';
+import { authGuard, guestGuard } from '@core/guards/auth.guard';
+import { AppPath } from '@shared/enums/app-path.enum';
 
 export const routes: Routes = [
   {
-    path: 'login',
+    path: AppPath.LOGIN,
     loadComponent: () => import('./pages/login/login.component'),
+    canActivate: [guestGuard],
   },
   {
-    path: 'main',
+    path: AppPath.MAIN,
     loadComponent: () => import('./pages/main/main.component'),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: '**',
-    redirectTo: 'main',
+    redirectTo: AppPath.MAIN,
   },
 ];

@@ -1,12 +1,12 @@
-import { FormGroup, type AbstractControl } from '@angular/forms';
+import { FormArray, FormGroup, type AbstractControl } from '@angular/forms';
 
 /**
- * Marca todos los controles y subcontroles de un formulario como 'touched'.
+ * Marks a control and all its descendants (FormGroup / FormArray) as touched.
  *
- * @param {AbstractControl} control - El control de formulario principal que se desea marcar.
+ * @param control - Root control to mark.
  */
 export function markAllControlsAsTouched(control: AbstractControl): void {
-  if (control instanceof FormGroup) {
+  if (control instanceof FormGroup || control instanceof FormArray) {
     Object.values(control.controls).forEach((ctrl) => {
       markAllControlsAsTouched(ctrl);
     });

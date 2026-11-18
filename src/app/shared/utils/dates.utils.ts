@@ -12,8 +12,8 @@ import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 export function isDateBefore(
   targetDate: Date,
   endDate: Date,
-  includeEqual: boolean = true,
-  ignoreTime: boolean = true,
+  includeEqual = true,
+  ignoreTime = true,
 ): boolean {
   const dateToCompare = ignoreTime ? startOfDay(targetDate) : targetDate;
   const referenceDate = ignoreTime ? startOfDay(endDate) : endDate;
@@ -35,8 +35,8 @@ export function isDateBefore(
 export function isDateAfter(
   targetDate: Date,
   startDate: Date,
-  includeEqual: boolean = true,
-  ignoreTime: boolean = true,
+  includeEqual = true,
+  ignoreTime = true,
 ): boolean {
   return isDateBefore(startDate, targetDate, includeEqual, ignoreTime);
 }
@@ -57,7 +57,7 @@ export function isDateWithinRange(
   targetDate: Date,
   startDate: Date,
   endDate: Date,
-  ignoreTime: boolean = true,
+  ignoreTime = true,
 ): boolean {
   let rangeStart: Date;
   let rangeEnd: Date;

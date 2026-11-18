@@ -9,51 +9,51 @@ describe('dates.utils', () => {
 
   describe('isDateBefore', () => {
     it('should be true when the date is earlier', () => {
-      expect(isDateBefore(yesterday, today)).toBeTrue();
+      expect(isDateBefore(yesterday, today)).toBe(true);
     });
 
     it('should be true for the same day when equality is included', () => {
-      expect(isDateBefore(todayMorning, today)).toBeTrue();
+      expect(isDateBefore(todayMorning, today)).toBe(true);
     });
 
     it('should be false for the same day when equality is excluded', () => {
-      expect(isDateBefore(todayMorning, today, false)).toBeFalse();
+      expect(isDateBefore(todayMorning, today, false)).toBe(false);
     });
 
     it('should compare the time when ignoreTime is false', () => {
-      expect(isDateBefore(todayMorning, today, false, false)).toBeTrue();
+      expect(isDateBefore(todayMorning, today, false, false)).toBe(true);
     });
   });
 
   describe('isDateAfter', () => {
     it('should be true when the date is later', () => {
-      expect(isDateAfter(tomorrow, today)).toBeTrue();
+      expect(isDateAfter(tomorrow, today)).toBe(true);
     });
 
     it('should be false when the date is earlier', () => {
-      expect(isDateAfter(yesterday, today)).toBeFalse();
+      expect(isDateAfter(yesterday, today)).toBe(false);
     });
   });
 
   describe('isDateWithinRange', () => {
     it('should be true when the date is inside the range', () => {
-      expect(isDateWithinRange(today, yesterday, tomorrow)).toBeTrue();
+      expect(isDateWithinRange(today, yesterday, tomorrow)).toBe(true);
     });
 
     it('should be false when the date is outside the range', () => {
-      expect(
-        isDateWithinRange(addDays(tomorrow, 1), yesterday, tomorrow),
-      ).toBeFalse();
+      expect(isDateWithinRange(addDays(tomorrow, 1), yesterday, tomorrow)).toBe(
+        false,
+      );
     });
 
     it('should be false when the range is inverted', () => {
-      expect(isDateWithinRange(today, tomorrow, yesterday)).toBeFalse();
+      expect(isDateWithinRange(today, tomorrow, yesterday)).toBe(false);
     });
 
     it('should compare the time when ignoreTime is false', () => {
-      expect(
-        isDateWithinRange(todayMorning, today, tomorrow, false),
-      ).toBeFalse();
+      expect(isDateWithinRange(todayMorning, today, tomorrow, false)).toBe(
+        false,
+      );
     });
   });
 });

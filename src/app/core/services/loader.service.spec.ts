@@ -9,7 +9,7 @@ describe('LoaderService', () => {
   });
 
   it('should not be loading by default', () => {
-    expect(service.isLoading()).toBeFalse();
+    expect(service.isLoading()).toBe(false);
   });
 
   it('should be loading while there are active requests', () => {
@@ -17,20 +17,20 @@ describe('LoaderService', () => {
     service.show();
     service.hide();
 
-    expect(service.isLoading()).toBeTrue();
+    expect(service.isLoading()).toBe(true);
   });
 
   it('should stop loading when every request has finished', () => {
     service.show();
     service.hide();
 
-    expect(service.isLoading()).toBeFalse();
+    expect(service.isLoading()).toBe(false);
   });
 
   it('should never go below zero active requests', () => {
     service.hide();
     service.show();
 
-    expect(service.isLoading()).toBeTrue();
+    expect(service.isLoading()).toBe(true);
   });
 });

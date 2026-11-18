@@ -1,17 +1,28 @@
 @use 'imports' as *;
 
 :host {
-  position: fixed;
-  width: 100%;
-  background: lightblue;
+  display: block;
+  background-color: $color-primary-100;
+}
 
-  .header-wrapper {
-    margin-inline: auto;
-    min-height: rem(100);
-    display: flex;
-    align-items: center;
-    justify-content: end;
-    max-width: calc($page-max-width + $spacing-xl * 2);
-    padding: $spacing-xs $spacing-xl;
-  }
+.header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs;
+  min-height: rem(64);
+  max-width: calc($page-max-width + $spacing-xl * 2);
+  padding: $spacing-xs $spacing-xl;
+  margin-inline: auto;
+}
+
+.app-name {
+  font-weight: bold;
+  color: $color-primary-700;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
 }

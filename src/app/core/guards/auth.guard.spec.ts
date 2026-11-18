@@ -1,44 +1,59 @@
-import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import {
+  type ActivatedRouteSnapshot,
+  type CanActivateFn,
+  type RouterStateSnapshot,
+  UrlTree,
+} from '@angular/router';
+import { signal } from '@angular/core';
 import { AuthService } from '@core/services/auth.service';
-import type { LoginResponse } from '@core/api/login/login.types';
-import { AuthGuard } from './auth.guard';
+import { authGuard, guestGuard } from './auth.guard';
 
-describe('AuthGuard', () => {
-  let guard: AuthGuard;
-  let routerSpy: jasmine.SpyObj<Router>;
-  const authServiceMock = { userData: signal<LoginResponse | null>(null) };
+describe('auth guards', () => {
+  const isAuthenticated = signal(false);
 
   beforeEach(() => {
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-
     TestBed.configureTestingModule({
-      providers: [
-        { provide: Router, useValue: routerSpy },
-        { provide: AuthService, useValue: authServiceMock },
-      ],
+      providers: [{ provide: AuthService, useValue: { isAuthenticated } }],
     });
-
-    guard = TestBed.inject(AuthGuard);
   });
 
-  it('should allow access when there is a session token', () => {
-    authServiceMock.userData.set({
-      username: 'user',
-      token: 't',
-      refreshToken: 'r',
+  function run(guard: CanActivateFn): ReturnType<CanActivateFn> {
+    return TestBed.runInInjectionContext(() =>
+      guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+    );
+  }
+
+  function urlOf(result: ReturnType<CanActivateFn>): string {
+    expect(result).toBeInstanceOf(UrlTree);
+    return (result as UrlTree).toString();
+  }
+
+  describe('authGuard', () => {
+    it('lets authenticated users through', () => {
+      isAuthenticated.set(true);
+
+      expect(run(authGuard)).toBe(true);
     });
 
-    expect(guard.canActivate()).toBeTrue();
+    it('redirects anonymous users to the login page', () => {
+      isAuthenticated.set(false);
+
+      expect(urlOf(run(authGuard))).toBe('/login');
+    });
   });
 
-  it('should redirect to /login when there is no session', () => {
-    authServiceMock.userData.set(null);
+  describe('guestGuard', () => {
+    it('lets anonymous users through', () => {
+      isAuthenticated.set(false);
 
-    const result = guard.canActivate();
+      expect(run(guestGuard)).toBe(true);
+    });
 
-    expect(result).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
+    it('redirects authenticated users to the main page', () => {
+      isAuthenticated.set(true);
+
+      expect(urlOf(run(guestGuard))).toBe('/main');
+    });
   });
 });

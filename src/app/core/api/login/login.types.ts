@@ -15,5 +15,3 @@ export type LoginResponse = {
   token: Token;
   refreshToken: Token;
 };
-
-export type { Token };

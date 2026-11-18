@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
-  useMSW: true, // Development usa MSW
+  // Local development: requests are served by the MSW fake backend
+  useMSW: true,
   api: '/api',
 };

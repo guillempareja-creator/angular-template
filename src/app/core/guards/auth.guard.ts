@@ -1,22 +1,14 @@
-import { inject, Injectable } from '@angular/core';
-import { type CanActivate, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { type CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
+import { AppPath } from '@shared/enums/app-path.enum';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthGuard implements CanActivate {
-  private router = inject(Router);
-  private authService = inject(AuthService);
+/** Only authenticated users; everyone else is redirected to the login page. */
+export const authGuard: CanActivateFn = () =>
+  inject(AuthService).isAuthenticated() ||
+  inject(Router).createUrlTree(['/', AppPath.LOGIN]);
 
-  public canActivate(): boolean {
-    const userData = this.authService.userData();
-
-    if (userData?.token) {
-      return true;
-    }
-
-    void this.router.navigate(['/login']);
-    return false;
-  }
-}
+/** Only anonymous users (e.g. login page); authenticated users go home. */
+export const guestGuard: CanActivateFn = () =>
+  !inject(AuthService).isAuthenticated() ||
+  inject(Router).createUrlTree(['/', AppPath.MAIN]);

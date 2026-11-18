@@ -1,73 +1,75 @@
 import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { type HttpErrorResponse } from '@angular/common/http';
-import { ToastrService } from 'ngx-toastr';
+import type { HttpErrorResponse } from '@angular/common/http';
+import { translateText } from '@shared/utils/i18n.utils';
+import {
+  NotificationService,
+  type NotificationType,
+} from '@core/services/notification.service';
 
+export const DEFAULT_MESSAGE_TAG = 'default';
+
+/**
+ * Translates backend tags (`httpRequest.{type}.{tag}` in i18n) into
+ * user-facing notifications. Used by the HTTP interceptors.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class HttpResponseHandlerService {
-  // Injects
+  // Injections
   private translate = inject(TranslateService);
-  private toastr = inject(ToastrService);
+  private notificationService = inject(NotificationService);
 
   // Methods
-
-  /**
-   * Handles HTTP errors and shows translated messages
-   * @param error - HTTP error received
-   */
   public handleHttpError(error: HttpErrorResponse): void {
-    const errorTag = error.error?.tag;
-    const message = this.translateServerMessage(errorTag ?? 'default');
-    this.toastr.error(message);
+    const errorTag = readErrorTag(error.error) ?? DEFAULT_MESSAGE_TAG;
+    this.notificationService.error(
+      this.translateServerMessage(errorTag, 'error'),
+    );
   }
 
-  /**
-   * Handles HTTP warnings and shows translated messages
-   * @param error - HTTP warning received
-   */
   public handleHttpWarning(warningTag: string): void {
-    const message = this.translateServerMessage(warningTag, 'warning');
-    this.toastr.warning(message);
+    this.notificationService.warning(
+      this.translateServerMessage(warningTag, 'warning'),
+    );
   }
 
-  /**
-   * Handles success responses and shows translated messages
-   * @param successTag - Success tag sent by server
-   */
-  public handleSuccessResponse(successTag: string = 'default'): void {
-    const message = this.translateServerMessage(successTag, 'success');
-    this.toastr.success(message);
+  public handleSuccessResponse(successTag: string = DEFAULT_MESSAGE_TAG): void {
+    this.notificationService.success(
+      this.translateServerMessage(successTag, 'success'),
+    );
   }
 
-  /**
-   * Handles session expired errors
-   */
   public handleSessionExpired(): void {
-    this.toastr.error(
-      this.translate.instant('httpRequest.error.sessionExpired'),
+    this.notificationService.error(
+      translateText(this.translate, 'httpRequest.error.sessionExpired'),
     );
   }
 
   /**
-   * Translates a tag from server using i18n
-   * @param tag - Tag sent by server
-   * @param type - Type of message (error or success)
-   * @returns Translated message or default message if not found
+   * Returns the translation for `httpRequest.{type}.{tag}`, falling back to
+   * `httpRequest.{type}.default` when the tag is unknown.
    */
-  private translateServerMessage(
-    tag: string,
-    type: 'error' | 'success' | 'warning' = 'error',
-  ): string {
+  private translateServerMessage(tag: string, type: NotificationType): string {
     const translationKey = `httpRequest.${type}.${tag}`;
-    const translatedMessage = this.translate.instant(translationKey);
+    const translatedMessage = translateText(this.translate, translationKey);
 
-    // If translation equals the key, it means it wasn't found, return default
     if (translatedMessage === translationKey) {
-      return this.translate.instant(`httpRequest.${type}.default`);
+      return translateText(
+        this.translate,
+        `httpRequest.${type}.${DEFAULT_MESSAGE_TAG}`,
+      );
     }
 
     return translatedMessage;
   }
+}
+
+function readErrorTag(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null || !('tag' in body)) {
+    return null;
+  }
+
+  return typeof body.tag === 'string' ? body.tag : null;
 }
