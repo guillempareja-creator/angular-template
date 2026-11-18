@@ -187,5 +187,11 @@ Mientras se usen (p. ej. el grid en la pantalla de login), se mantienen.
 ## Herramientas
 
 - **Stylelint** (`stylelint-config-standard-scss` + prettier) valida todo
-  `.scss`.
-- **`npm run format`** formatea y aplica _fixes_ automáticos antes de commitear.
+  `.scss` con `npm run lint:styles` (parte de `npm run check`). Reglas extra del
+  proyecto: anidamiento máximo 3, sin `!important`, sin selectores de id, como
+  mucho 4 selectores compuestos y sin colores por nombre (usar las variables).
+- **`npm run format`** formatea y aplica _fixes_ automáticos antes de commitear
+  (el hook `pre-commit` lo hace sobre los ficheros staged).
+- El build de producción limita cada hoja de estilos de componente a 3 kB
+  (aviso) / 6 kB (error): si un componente crece más, dividirlo en componentes
+  más pequeños.
