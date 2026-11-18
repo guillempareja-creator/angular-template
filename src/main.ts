@@ -1,3 +1,4 @@
+import { provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
@@ -14,7 +15,10 @@ async function initializeApp() {
   await enableMocking();
 
   // Bootstrap the application
-  const appRef = await bootstrapApplication(AppComponent, appConfig);
+  const appRef = await bootstrapApplication(AppComponent, {
+    ...appConfig,
+    providers: [provideZoneChangeDetection(), ...appConfig.providers],
+  });
 
   // Initialize translations after app is bootstrapped
   const translateService = appRef.injector.get(TranslateService);
