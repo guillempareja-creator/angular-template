@@ -3,7 +3,7 @@ import { loginHandlers } from './handlers/login';
 import { refreshTokenHandlers } from './handlers/refresh-token';
 import { exampleHandlers } from './handlers/example';
 
-// Configuración del Service Worker con todos los handlers
+// Service Worker with every handler. Register new endpoint families here.
 export const worker = setupWorker(
   ...loginHandlers,
   ...refreshTokenHandlers,

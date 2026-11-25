@@ -15,7 +15,7 @@ describe('ErrorMessagePipe', () => {
   });
 
   it('should return an empty string without controls', () => {
-    expect(pipe.transform(null as unknown as FormControl)).toBe('');
+    expect(pipe.transform(null)).toBe('');
   });
 
   it('should return an empty string when there are no errors', () => {

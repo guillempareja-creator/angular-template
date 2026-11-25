@@ -10,9 +10,9 @@ import { ExampleService } from '@core/api/example/example.service';
 import type { GetExampleResponse } from '@core/api/example/example.types';
 
 /**
- * Página de ejemplo del template: muestra el flujo completo
- * servicio API (`core/api/`) → signal → template con i18n.
- * Sustituir por la primera pantalla real de la aplicación.
+ * Template example page: shows the full flow
+ * API service (`core/api/`) → signal → template with i18n.
+ * Replace it with the first real screen of the application.
  */
 @Component({
   selector: 'app-main',
@@ -26,10 +26,14 @@ export default class MainComponent implements OnInit {
   private exampleService = inject(ExampleService);
 
   // Data
-  public example = signal<GetExampleResponse | null>(null);
+  public readonly example = signal<GetExampleResponse | null>(null);
 
   // Methods
-  public async ngOnInit(): Promise<void> {
+  public ngOnInit(): void {
+    void this.loadExample();
+  }
+
+  private async loadExample(): Promise<void> {
     const response = await this.exampleService.getExample();
     this.example.set(response);
   }

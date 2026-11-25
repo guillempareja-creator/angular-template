@@ -4,7 +4,7 @@
 
 export type ExampleId = number;
 
-export type ExampleData = {
+type ExampleData = {
   example: string;
 };
 

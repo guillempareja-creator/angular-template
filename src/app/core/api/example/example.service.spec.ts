@@ -1,76 +1,71 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { HttpCustomHeader } from '@shared/enums/http-custom-headers.enum';
+import { TestBed } from '@angular/core/testing';
+import {
+  SHOW_LOADER,
+  SUCCESS_MESSAGE,
+} from '@core/interceptors/http-context.tokens';
 import { ExampleService } from './example.service';
 
 describe('ExampleService', () => {
   let service: ExampleService;
-  let httpMock: HttpTestingController;
+  let httpTesting: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-
     service = TestBed.inject(ExampleService);
-    httpMock = TestBed.inject(HttpTestingController);
+    httpTesting = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    httpMock.verify();
+    httpTesting.verify();
   });
 
-  describe('Methods', () => {
-    it('getExample should GET /example with the custom success tag', async () => {
-      const promise = service.getExample();
+  it('getExample → GET /example', async () => {
+    const response = service.getExample();
 
-      const req = httpMock.expectOne('/example');
-      req.flush({ example: 'data' });
+    const call = httpTesting.expectOne({ method: 'GET', url: '/example' });
+    call.flush({ example: 'data' });
 
-      expect(req.request.method).toBe('GET');
-      expect(
-        req.request.headers.get(HttpCustomHeader.CUSTOM_SUCCESS_MESSAGE),
-      ).toBe('customSuccess');
-      expect(await promise).toEqual({ example: 'data' });
-    });
+    await expect(response).resolves.toEqual({ example: 'data' });
+  });
 
-    it('createExample should POST the body to /example', async () => {
-      const body = { example: 'new' };
-      const promise = service.createExample(body);
+  it('createExample → POST /example with the default success toast', async () => {
+    const response = service.createExample({ example: 'new' });
 
-      const req = httpMock.expectOne('/example');
-      req.flush({ message: 'ok', id: 1 });
+    const call = httpTesting.expectOne({ method: 'POST', url: '/example' });
+    expect(call.request.body).toEqual({ example: 'new' });
+    expect(call.request.context.get(SUCCESS_MESSAGE)).toBe('default');
+    call.flush({ message: 'created', id: 1 });
 
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(body);
-      expect(await promise).toEqual({ message: 'ok', id: 1 });
-    });
+    await expect(response).resolves.toEqual({ message: 'created', id: 1 });
+  });
 
-    it('updateExample should PUT the body to /example/:id', async () => {
-      const body = { example: 'updated' };
-      const promise = service.updateExample(7, body);
+  it('updateExample → PUT /example/:id with a custom success toast', async () => {
+    const response = service.updateExample(7, { example: 'edited' });
 
-      const req = httpMock.expectOne('/example/7');
-      req.flush({ message: 'ok', id: 7 });
+    const call = httpTesting.expectOne({ method: 'PUT', url: '/example/7' });
+    expect(call.request.body).toEqual({ example: 'edited' });
+    expect(call.request.context.get(SUCCESS_MESSAGE)).toBe('exampleUpdated');
+    call.flush({ message: 'updated', id: 7 });
 
-      expect(req.request.method).toBe('PUT');
-      expect(req.request.body).toEqual(body);
-      expect(await promise).toEqual({ message: 'ok', id: 7 });
-    });
+    await expect(response).resolves.toEqual({ message: 'updated', id: 7 });
+  });
 
-    it('getExampleDocument should GET /example/document as blob', async () => {
-      const blob = new Blob(['pdf']);
-      const promise = service.getExampleDocument();
+  it('getExampleDocument → GET /example/document as a blob, without loader', async () => {
+    const blob = new Blob(['pdf']);
+    const response = service.getExampleDocument();
 
-      const req = httpMock.expectOne('/example/document');
-      req.flush(blob);
+    const call = httpTesting.expectOne('/example/document');
+    expect(call.request.responseType).toBe('blob');
+    expect(call.request.context.get(SHOW_LOADER)).toBe(false);
+    call.flush(blob);
 
-      expect(req.request.responseType).toBe('blob');
-      expect(await promise).toEqual(blob);
-    });
+    await expect(response).resolves.toBe(blob);
   });
 });

@@ -57,11 +57,11 @@ describe('objects.utils', () => {
 
   describe('areAllPropsNull', () => {
     it('should be true when every property is null', () => {
-      expect(areAllPropsNull({ a: null, b: null })).toBeTrue();
+      expect(areAllPropsNull({ a: null, b: null })).toBe(true);
     });
 
     it('should be false when any property has a value', () => {
-      expect(areAllPropsNull({ a: null, b: 0 })).toBeFalse();
+      expect(areAllPropsNull({ a: null, b: 0 })).toBe(false);
     });
   });
 });

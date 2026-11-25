@@ -1,9 +1,8 @@
 import { Pipe, type PipeTransform } from '@angular/core';
-import { type AbstractControl } from '@angular/forms';
+import type { AbstractControl } from '@angular/forms';
 
 @Pipe({
   name: 'isInvalidControl',
-  standalone: true,
   pure: false,
 })
 export class IsInvalidControlPipe implements PipeTransform {

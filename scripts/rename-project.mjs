@@ -31,6 +31,10 @@ const IGNORED_DIRS = new Set([
   '.vscode',
   'dist',
   'coverage',
+  'out-tsc',
+  'playwright-report',
+  'test-results',
+  'blob-report',
 ]);
 const IGNORED_FILES = new Set(['package-lock.json', 'rename-project.mjs']);
 const TEXT_EXTENSIONS = new Set([
@@ -42,6 +46,7 @@ const TEXT_EXTENSIONS = new Set([
   '.css',
   '.js',
   '.mjs',
+  '.cjs',
   '.yml',
   '.yaml',
 ]);

@@ -1,7 +1,7 @@
-import {
-  type AbstractControl,
-  type ValidationErrors,
-  type ValidatorFn,
+import type {
+  AbstractControl,
+  ValidationErrors,
+  ValidatorFn,
 } from '@angular/forms';
 import { isDateAfter, isDateBefore } from '@shared/utils/dates.utils';
 import { isValid } from 'date-fns';
@@ -10,17 +10,23 @@ import { isValid } from 'date-fns';
  * Helper function to safely convert control value to Date
  */
 function getDateFromControl(control: AbstractControl): Date | null {
-  if (!control.value) {
+  const value: unknown = control.value;
+  if (!value || !isDateInput(value)) {
     return null;
   }
 
-  const inputDate = new Date(control.value);
+  const inputDate = new Date(value);
 
-  if (!isValid(inputDate)) {
-    return null; // Let other validators handle invalid dates
-  }
+  // Invalid dates are left to other validators
+  return isValid(inputDate) ? inputDate : null;
+}
 
-  return inputDate;
+function isDateInput(value: unknown): value is Date | string | number {
+  return (
+    value instanceof Date ||
+    typeof value === 'string' ||
+    typeof value === 'number'
+  );
 }
 
 /**

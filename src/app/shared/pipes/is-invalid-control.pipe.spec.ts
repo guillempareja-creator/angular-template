@@ -12,34 +12,34 @@ describe('IsInvalidControlPipe', () => {
   });
 
   it('should be false for an untouched invalid control', () => {
-    expect(pipe.transform(form, 'name')).toBeFalse();
+    expect(pipe.transform(form, 'name')).toBe(false);
   });
 
   it('should be true for a touched invalid control', () => {
     form.get('name')!.markAsTouched();
 
-    expect(pipe.transform(form, 'name')).toBeTrue();
+    expect(pipe.transform(form, 'name')).toBe(true);
   });
 
   it('should be true for a dirty invalid control when checkDirty is set', () => {
     form.get('name')!.markAsDirty();
 
-    expect(pipe.transform(form, 'name', undefined, true)).toBeTrue();
+    expect(pipe.transform(form, 'name', undefined, true)).toBe(true);
   });
 
   it('should check a specific error when errorName is given', () => {
     form.get('name')!.markAsTouched();
 
-    expect(pipe.transform(form, 'name', 'maxlength')).toBeFalse();
+    expect(pipe.transform(form, 'name', 'maxlength')).toBe(false);
   });
 
   it('should evaluate the form itself when no field is given', () => {
     form.markAsTouched();
 
-    expect(pipe.transform(form)).toBeTrue();
+    expect(pipe.transform(form)).toBe(true);
   });
 
   it('should be false when the field does not exist', () => {
-    expect(pipe.transform(form, 'unknown')).toBeFalse();
+    expect(pipe.transform(form, 'unknown')).toBe(false);
   });
 });

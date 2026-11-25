@@ -3,6 +3,8 @@
     "angular.ng-template",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "stylelint.vscode-stylelint"
+    "stylelint.vscode-stylelint",
+    "vitest.explorer",
+    "ms-playwright.playwright"
   ]
 }

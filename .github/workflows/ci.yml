@@ -12,20 +12,45 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Same gates as `npm run check`. A PR is mergeable only when every job is green.
 jobs:
-  quality:
+  static:
+    name: Static analysis
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm run lint:styles
+      - name: Format
+        run: npm run format:check
+      - name: Lint (TS, templates, a11y, complexity)
+        run: npm run lint
+      - name: Lint styles
+        run: npm run lint:styles
+      - name: Architecture (dependency-cruiser)
+        run: npm run lint:arch
+      - name: Unused code and dependencies (knip)
+        run: npm run lint:unused
+      - name: Type check
+        run: npm run typecheck
+      - name: Dependency audit
+        run: npm run audit:prod
+
+  test:
+    name: Unit tests and coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - run: npm run test:ci
       - uses: actions/upload-artifact@v4
         if: always()
@@ -33,5 +58,36 @@ jobs:
           name: coverage
           path: coverage/
           if-no-files-found: ignore
+
+  build:
+    name: Production build (budgets)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - run: npm run build
-      - run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run e2e:install
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore

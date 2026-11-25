@@ -1,6 +1,5 @@
 export const environment = {
-  production: true,
-  useMSW: false, // Production usa API real
-  // PLACEHOLDER: sustituir por la URL real de la API de producción
+  useMSW: false,
+  // PLACEHOLDER: replace with the real production API URL
   api: 'https://api.example.com',
 };

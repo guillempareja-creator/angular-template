@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('stylelint').Config} */
+export default {
   extends: ['stylelint-config-standard-scss', 'stylelint-prettier/recommended'],
   rules: {
     'prettier/prettier': true,
@@ -8,5 +9,10 @@ module.exports = {
     ],
     'length-zero-no-unit': true,
     'no-empty-source': null,
+    'declaration-no-important': true,
+    'max-nesting-depth': 3,
+    'selector-max-id': 0,
+    'selector-max-compound-selectors': 4,
+    'color-named': 'never',
   },
 };

@@ -136,7 +136,7 @@ Después de crear la skill, **siempre** añadir una nueva fila en `.github/skill
 ```markdown
 ---
 name: form-submit
-description: Use when the user needs to validate and submit a reactive form. Also use when the user asks in Spanish to enviar un formulario, validar un formulario, guardar un formulario, scroll al primer error, or similar. Covers markAllControlsAsTouched, sleep and FormService.navigateToFormError with the early-return flow.
+description: Use when the user needs to validate and submit a reactive form. Also use when the user asks in Spanish to enviar un formulario, validar un formulario, guardar un formulario, foco en el primer error, or similar. Covers markAllControlsAsTouched and FormService.focusFirstInvalidControl with the early-return flow.
 user-invocable: true
 ---
 
@@ -151,23 +151,23 @@ primer error si el formulario no es válido.
 
 ```typescript
 // Injections
+private host = inject<ElementRef<HTMLElement>>(ElementRef);
 private formService = inject(FormService);
 
-public async handleSave(): Promise<void> {
+public handleSave(): void {
   markAllControlsAsTouched(this.form);
 
-  if (!this.form.valid) {
-    await sleep(); // Let the UI render validation errors before scrolling
-    this.formService.navigateToFormError();
+  if (this.form.invalid) {
+    this.formService.focusFirstInvalidControl(this.host.nativeElement);
     return;
   }
 
-  await this.exampleService.createExample(this.form.value);
+  void this.exampleService.createExample(this.form.getRawValue());
 }
 ```
 
 ## Reglas clave
-- `markAllControlsAsTouched` siempre antes de comprobar `valid`
+- `markAllControlsAsTouched` siempre antes de comprobar `invalid`
 - Early return si el formulario no es válido
 - Mensajes de error con el pipe `errorMessage` (skill `@i18n`)
 ```

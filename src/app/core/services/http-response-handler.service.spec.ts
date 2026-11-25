@@ -1,81 +1,88 @@
-import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
-import { ToastrService } from 'ngx-toastr';
 import { HttpResponseHandlerService } from './http-response-handler.service';
+import { NotificationService } from './notification.service';
 
 describe('HttpResponseHandlerService', () => {
   let service: HttpResponseHandlerService;
-  let toastrSpy: jasmine.SpyObj<ToastrService>;
+  let notifications: NotificationService;
 
   beforeEach(() => {
-    toastrSpy = jasmine.createSpyObj('ToastrService', [
-      'error',
-      'warning',
-      'success',
-    ]);
-
     TestBed.configureTestingModule({
-      providers: [
-        provideTranslateService(),
-        { provide: ToastrService, useValue: toastrSpy },
-      ],
+      providers: [provideTranslateService()],
     });
-
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('es', {
       httpRequest: {
-        error: { knownError: 'Known error', default: 'Default error' },
-        warning: { knownWarning: 'Known warning', default: 'Default warning' },
-        success: { default: 'Default success' },
+        error: { default: 'Generic error', customError: 'Custom error' },
+        warning: {
+          default: 'Generic warning',
+          customWarning: 'Custom warning',
+        },
+        success: { default: 'Generic success', saved: 'Saved' },
       },
     });
     translate.use('es');
-
     service = TestBed.inject(HttpResponseHandlerService);
+    notifications = TestBed.inject(NotificationService);
   });
 
-  describe('Methods', () => {
-    it('handleHttpError should show the message of the backend tag', () => {
+  function lastMessage(): string | undefined {
+    return notifications.notifications().at(-1)?.message;
+  }
+
+  describe('handleHttpError', () => {
+    it('translates the error tag sent by the backend', () => {
       service.handleHttpError(
-        new HttpErrorResponse({ error: { tag: 'knownError' } }),
+        new HttpErrorResponse({ error: { tag: 'customError' } }),
       );
 
-      expect(toastrSpy.error).toHaveBeenCalledWith('Known error');
+      expect(lastMessage()).toBe('Custom error');
     });
 
-    it('handleHttpError should fall back to the default message for unknown tags', () => {
-      service.handleHttpError(
-        new HttpErrorResponse({ error: { tag: 'unknownError' } }),
-      );
+    it.each([
+      ['an unknown tag', { tag: 'unknown' }],
+      ['a non-string tag', { tag: 42 }],
+      ['a body without tag', { message: 'boom' }],
+      ['an empty body', null],
+    ])('falls back to the default error with %s', (_, body) => {
+      service.handleHttpError(new HttpErrorResponse({ error: body }));
 
-      expect(toastrSpy.error).toHaveBeenCalledWith('Default error');
+      expect(lastMessage()).toBe('Generic error');
     });
+  });
 
-    it('handleHttpError should use the default message when there is no tag', () => {
-      service.handleHttpError(new HttpErrorResponse({}));
+  it('shows a translated warning', () => {
+    service.handleHttpWarning('customWarning');
 
-      expect(toastrSpy.error).toHaveBeenCalledWith('Default error');
+    expect(notifications.notifications().at(-1)).toMatchObject({
+      type: 'warning',
+      message: 'Custom warning',
     });
+  });
 
-    it('handleHttpWarning should show a warning toast', () => {
-      service.handleHttpWarning('knownWarning');
+  it('shows a translated success message', () => {
+    service.handleSuccessResponse('saved');
 
-      expect(toastrSpy.warning).toHaveBeenCalledWith('Known warning');
+    expect(notifications.notifications().at(-1)).toMatchObject({
+      type: 'success',
+      message: 'Saved',
     });
+  });
 
-    it('handleSuccessResponse should show the default success message', () => {
-      service.handleSuccessResponse();
+  it('shows the default success message when no tag is given', () => {
+    service.handleSuccessResponse();
 
-      expect(toastrSpy.success).toHaveBeenCalledWith('Default success');
-    });
+    expect(lastMessage()).toBe('Generic success');
+  });
 
-    it('handleSessionExpired should show the session expired error', () => {
-      service.handleSessionExpired();
+  it('shows the session expired error', () => {
+    service.handleSessionExpired();
 
-      expect(toastrSpy.error).toHaveBeenCalledWith(
-        'httpRequest.error.sessionExpired',
-      );
+    expect(notifications.notifications().at(-1)).toMatchObject({
+      type: 'error',
+      message: 'httpRequest.error.sessionExpired',
     });
   });
 });

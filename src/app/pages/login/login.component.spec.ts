@@ -5,74 +5,63 @@ import { FormService } from '@shared/services/form.service';
 import LoginComponent from './login.component';
 
 describe('LoginComponent', () => {
-  let component: LoginComponent;
+  const authService = { login: vi.fn() };
   let fixture: ComponentFixture<LoginComponent>;
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
-  let formServiceSpy: jasmine.SpyObj<FormService>;
+  let host: HTMLElement;
+  let formService: FormService;
 
   beforeEach(async () => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'logout']);
-    authServiceSpy.login.and.resolveTo();
-    formServiceSpy = jasmine.createSpyObj('FormService', [
-      'navigateToFormError',
-    ]);
-
-    await TestBed.configureTestingModule({
-      imports: [LoginComponent],
+    vi.resetAllMocks();
+    TestBed.configureTestingModule({
       providers: [
         provideTranslateService(),
-        { provide: AuthService, useValue: authServiceSpy },
-        { provide: FormService, useValue: formServiceSpy },
+        { provide: AuthService, useValue: authService },
       ],
-    }).compileComponents();
-
+    });
+    formService = TestBed.inject(FormService);
+    vi.spyOn(formService, 'focusFirstInvalidControl');
     fixture = TestBed.createComponent(LoginComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    host = fixture.nativeElement as HTMLElement;
+    await fixture.whenStable();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  function fill(id: string, value: string): void {
+    const input = host.querySelector<HTMLInputElement>(`#${id}`);
+    if (!input) {
+      throw new Error(`Missing input #${id}`);
+    }
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+  }
+
+  async function submit(): Promise<void> {
+    host.querySelector<HTMLButtonElement>('#login-btn-submit')?.click();
+    await fixture.whenStable();
+  }
+
+  it('shows the validation errors and focuses the form when empty', async () => {
+    await submit();
+
+    expect(authService.login).not.toHaveBeenCalled();
+    expect(formService.focusFirstInvalidControl).toHaveBeenCalledWith(host);
+    expect(host.querySelector('#login-error-username')?.textContent).toContain(
+      'form.requiredError',
+    );
+    expect(
+      host.querySelector('#login-input-password')?.getAttribute('aria-invalid'),
+    ).toBe('true');
   });
 
-  describe('Initialization', () => {
-    it('should close any previous session', () => {
-      expect(authServiceSpy.logout).toHaveBeenCalled();
+  it('logs in with the entered credentials', async () => {
+    fill('login-input-username', 'demo');
+    fill('login-input-password', 'secret');
+
+    await submit();
+
+    expect(authService.login).toHaveBeenCalledWith({
+      username: 'demo',
+      password: 'secret',
     });
-
-    it('should build an empty form', () => {
-      expect(component.form.value).toEqual({ username: '', password: '' });
-    });
-  });
-
-  describe('Methods', () => {
-    describe('handleLogin', () => {
-      it('should navigate to the first error when the form is invalid', async () => {
-        await component.handleLogin();
-
-        expect(formServiceSpy.navigateToFormError).toHaveBeenCalled();
-        expect(authServiceSpy.login).not.toHaveBeenCalled();
-      });
-
-      it('should login with the form values when the form is valid', async () => {
-        const credentials = { username: 'user', password: 'pass' };
-        component.form.setValue(credentials);
-
-        await component.handleLogin();
-
-        expect(authServiceSpy.login).toHaveBeenCalledWith(credentials);
-      });
-    });
-  });
-
-  describe('DOM Rendering', () => {
-    it('should show the validation errors after submitting an empty form', async () => {
-      await component.handleLogin();
-      fixture.detectChanges();
-
-      expect(
-        fixture.nativeElement.querySelectorAll('.invalid-feedback').length,
-      ).toBe(2);
-    });
+    expect(formService.focusFirstInvalidControl).not.toHaveBeenCalled();
   });
 });

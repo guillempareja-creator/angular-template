@@ -1,38 +1,37 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { RefreshTokenService } from './refresh-token.service';
+import { SHOW_LOADER } from '@core/interceptors/http-context.tokens';
+import {
+  REFRESH_TOKEN_URL,
+  RefreshTokenService,
+} from './refresh-token.service';
 
 describe('RefreshTokenService', () => {
-  let service: RefreshTokenService;
-  let httpMock: HttpTestingController;
-
-  beforeEach(() => {
+  it('refreshToken → POST /refreshToken silently (no loader)', async () => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
+    const httpTesting = TestBed.inject(HttpTestingController);
+    const tokens = { token: 'new-access', refreshToken: 'new-refresh' };
 
-    service = TestBed.inject(RefreshTokenService);
-    httpMock = TestBed.inject(HttpTestingController);
-  });
+    const response = firstValueFrom(
+      TestBed.inject(RefreshTokenService).refreshToken('refresh'),
+    );
 
-  afterEach(() => {
-    httpMock.verify();
-  });
+    const call = httpTesting.expectOne({
+      method: 'POST',
+      url: REFRESH_TOKEN_URL,
+    });
+    expect(call.request.body).toEqual({ refreshToken: 'refresh' });
+    expect(call.request.context.get(SHOW_LOADER)).toBe(false);
+    call.flush(tokens);
 
-  it('refreshToken should POST the refresh token to /refreshToken', async () => {
-    const response = { token: 'new', refreshToken: 'newRefresh' };
-    const promise = firstValueFrom(service.refreshToken('oldRefresh'));
-
-    const req = httpMock.expectOne('/refreshToken');
-    req.flush(response);
-
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ refreshToken: 'oldRefresh' });
-    expect(await promise).toEqual(response);
+    await expect(response).resolves.toEqual(tokens);
+    httpTesting.verify();
   });
 });

@@ -7,3 +7,5 @@ src/fake-backend/mockServiceWorker.js
 /*.md
 .github
 .claude
+playwright-report
+test-results

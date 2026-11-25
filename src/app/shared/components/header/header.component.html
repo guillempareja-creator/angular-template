@@ -1,8 +1,12 @@
 <div class="header-wrapper">
-  @if (authService.userData()) {
-    <span>{{ authService.userData()!.username | ucfirst }}</span>
-    <button id="header-btn-logout" type="button" (click)="authService.logout()">
-      {{ 'common.logout' | translate }}
-    </button>
+  <span class="app-name">{{ 'app.name' | translate }}</span>
+
+  @if (session(); as session) {
+    <div class="user">
+      <span>{{ session.username | ucfirst }}</span>
+      <button id="header-btn-logout" type="button" (click)="handleLogout()">
+        {{ 'common.logout' | translate }}
+      </button>
+    </div>
   }
 </div>

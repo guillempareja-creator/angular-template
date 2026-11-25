@@ -1,39 +1,33 @@
-import { type ApplicationConfig, LOCALE_ID } from '@angular/core';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideToastr } from 'ngx-toastr';
 import {
-  provideHttpClient,
-  withInterceptors,
-  withFetch,
-} from '@angular/common/http';
+  type ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
-import { customHttpInterceptor } from '@core/interceptors/http.interceptor';
-import { provideTranslateService } from '@ngx-translate/core';
-import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { provideI18n } from '@core/i18n/i18n.providers';
+import { loaderInterceptor } from '@core/interceptors/loader.interceptor';
+import { notificationInterceptor } from '@core/interceptors/notification.interceptor';
+import { authInterceptor } from '@core/interceptors/auth.interceptor';
+import { apiUrlInterceptor } from '@core/interceptors/api-url.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideBrowserGlobalErrorListeners(),
     provideRouter(
       routes,
-      withInMemoryScrolling({
-        scrollPositionRestoration: 'top',
-      }),
+      withInMemoryScrolling({ scrollPositionRestoration: 'top' }),
     ),
-    provideAnimations(),
-    provideToastr({
-      positionClass: 'toast-top-center',
-      preventDuplicates: true,
-    }),
-    provideHttpClient(withInterceptors([customHttpInterceptor]), withFetch()),
-    { provide: LOCALE_ID, useValue: 'es-ES' },
-    provideTranslateService({
-      loader: provideTranslateHttpLoader({
-        prefix: './assets/i18n/',
-        suffix: '.json',
-      }),
-      fallbackLang: 'es',
-      lang: 'es',
-    }),
+    provideHttpClient(
+      // Order matters: outer → inner. apiUrlInterceptor must stay last so the
+      // others see the relative URL.
+      withInterceptors([
+        loaderInterceptor,
+        notificationInterceptor,
+        authInterceptor,
+        apiUrlInterceptor,
+      ]),
+    ),
+    provideI18n(),
   ],
 };

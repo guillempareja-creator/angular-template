@@ -3,115 +3,131 @@ import { Router } from '@angular/router';
 import { firstValueFrom, of, throwError } from 'rxjs';
 import { LoginService } from '@core/api/login/login.service';
 import { RefreshTokenService } from '@core/api/refresh-token/refresh-token.service';
-import { AuthService } from './auth.service';
+import { AppPath } from '@shared/enums/app-path.enum';
+import { AuthService, type Session, SESSION_STORAGE_KEY } from './auth.service';
+
+const SESSION: Session = {
+  username: 'demo',
+  token: 'access',
+  refreshToken: 'refresh',
+};
 
 describe('AuthService', () => {
-  const STORAGE_KEY = 'userData';
-  const session = { username: 'user', token: 't', refreshToken: 'r' };
+  const loginService = { login: vi.fn() };
+  const refreshTokenService = { refreshToken: vi.fn() };
+  let router: Router;
 
-  let service: AuthService;
-  let routerSpy: jasmine.SpyObj<Router>;
-  let loginServiceSpy: jasmine.SpyObj<LoginService>;
-  let refreshTokenServiceSpy: jasmine.SpyObj<RefreshTokenService>;
-
-  beforeEach(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    loginServiceSpy = jasmine.createSpyObj('LoginService', ['login']);
-    refreshTokenServiceSpy = jasmine.createSpyObj('RefreshTokenService', [
-      'refreshToken',
-    ]);
-
+  function setup(): AuthService {
     TestBed.configureTestingModule({
       providers: [
-        { provide: Router, useValue: routerSpy },
-        { provide: LoginService, useValue: loginServiceSpy },
-        { provide: RefreshTokenService, useValue: refreshTokenServiceSpy },
+        { provide: LoginService, useValue: loginService },
+        { provide: RefreshTokenService, useValue: refreshTokenService },
       ],
     });
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    return TestBed.inject(AuthService);
+  }
 
-    service = TestBed.inject(AuthService);
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetAllMocks();
   });
 
-  afterEach(() => {
-    localStorage.removeItem(STORAGE_KEY);
-  });
+  describe('session restore', () => {
+    it('starts anonymous when nothing is stored', () => {
+      const service = setup();
 
-  describe('login', () => {
-    beforeEach(async () => {
-      loginServiceSpy.login.and.resolveTo(session);
-      await service.login({ username: 'user', password: 'pass' });
+      expect(service.session()).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
     });
 
-    it('should store the session in the signal', () => {
-      expect(service.userData()).toEqual(session);
+    it('restores a valid stored session', () => {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(SESSION));
+
+      const service = setup();
+
+      expect(service.session()).toEqual(SESSION);
+      expect(service.isAuthenticated()).toBe(true);
     });
 
-    it('should persist the session in localStorage', () => {
-      expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual(session);
-    });
+    it.each([
+      ['corrupted JSON', '{not json'],
+      ['an invalid shape', JSON.stringify({ username: 'demo' })],
+      ['a primitive', JSON.stringify('token')],
+    ])('discards %s', (_, stored) => {
+      localStorage.setItem(SESSION_STORAGE_KEY, stored);
 
-    it('should navigate to /main', () => {
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/main']);
-    });
-  });
+      const service = setup();
 
-  describe('loadSession', () => {
-    it('should restore the stored session', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-
-      service.loadSession();
-
-      expect(service.userData()).toEqual(session);
-    });
-
-    it('should keep the session empty when nothing is stored', () => {
-      service.loadSession();
-
-      expect(service.userData()).toBeNull();
+      expect(service.session()).toBeNull();
+      expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
     });
   });
 
-  describe('logout', () => {
-    it('should clear the session and navigate to /login', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-      service.userData.set(session);
+  it('logs in, stores the session and navigates home', async () => {
+    const service = setup();
+    loginService.login.mockResolvedValue(SESSION);
 
-      service.logout();
+    await service.login({ username: 'demo', password: 'secret' });
 
-      expect(service.userData()).toBeNull();
-      expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
-    });
+    expect(service.session()).toEqual(SESSION);
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBe(
+      JSON.stringify(SESSION),
+    );
+    expect(router.navigate).toHaveBeenCalledWith(['/', AppPath.MAIN]);
+  });
+
+  it('logs out, clears the session and navigates to login', () => {
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(SESSION));
+    const service = setup();
+
+    service.logout();
+
+    expect(service.session()).toBeNull();
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+    expect(router.navigate).toHaveBeenCalledWith(['/', AppPath.LOGIN]);
   });
 
   describe('refreshToken', () => {
-    it('should fail and logout when there is no stored session', async () => {
-      await expectAsync(firstValueFrom(service.refreshToken())).toBeRejected();
+    it('fails when there is no session', async () => {
+      const service = setup();
 
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
+      await expect(firstValueFrom(service.refreshToken())).rejects.toThrow(
+        'No active session',
+      );
     });
 
-    it('should update the session with the refreshed tokens', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-      const refreshed = { token: 'newT', refreshToken: 'newR' };
-      refreshTokenServiceSpy.refreshToken.and.returnValue(of(refreshed));
-
-      await firstValueFrom(service.refreshToken());
-
-      expect(refreshTokenServiceSpy.refreshToken).toHaveBeenCalledWith('r');
-      expect(service.userData()).toEqual({ ...session, ...refreshed });
-    });
-
-    it('should logout when the refresh request fails', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-      refreshTokenServiceSpy.refreshToken.and.returnValue(
-        throwError(() => new Error('401')),
+    it('stores the new tokens and emits the access token', async () => {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(SESSION));
+      const service = setup();
+      refreshTokenService.refreshToken.mockReturnValue(
+        of({ token: 'new-access', refreshToken: 'new-refresh' }),
       );
 
-      await expectAsync(firstValueFrom(service.refreshToken())).toBeRejected();
+      const token = await firstValueFrom(service.refreshToken());
 
-      expect(service.userData()).toBeNull();
+      expect(token).toBe('new-access');
+      expect(refreshTokenService.refreshToken).toHaveBeenCalledWith('refresh');
+      expect(service.session()).toEqual({
+        username: 'demo',
+        token: 'new-access',
+        refreshToken: 'new-refresh',
+      });
+    });
+
+    it('shares a single in-flight request between concurrent callers', () => {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(SESSION));
+      const service = setup();
+      refreshTokenService.refreshToken.mockReturnValue(
+        throwError(() => new Error('pending')),
+      );
+
+      const first = service.refreshToken();
+      const second = service.refreshToken();
+
+      expect(first).toBe(second);
+      expect(refreshTokenService.refreshToken).toHaveBeenCalledTimes(1);
     });
   });
 });
