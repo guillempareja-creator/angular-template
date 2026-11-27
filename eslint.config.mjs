@@ -34,6 +34,15 @@ export default defineConfig([
     'src/fake-backend/mockServiceWorker.js',
   ]),
 
+  // No escape hatches: inline `eslint-disable` / `eslint` comments are ignored
+  // and reported, so a rule can only change here (docs/architecture/quality.md).
+  {
+    linterOptions: {
+      noInlineConfig: true,
+      reportUnusedDisableDirectives: 'error',
+    },
+  },
+
   // TypeScript (application, specs, fake backend, e2e)
   {
     files: ['**/*.ts'],
@@ -76,12 +85,21 @@ export default defineConfig([
         { max: 60, skipBlankLines: true, skipComments: true },
       ],
       'sonarjs/cognitive-complexity': ['error', 10],
-      // TODOs are allowed but must be tracked in TODOS.md (see skill track-todos)
+      // TODOs are allowed but must be tracked in docs/project/TODOS.md (skill track-todos)
       'sonarjs/todo-tag': 'off',
       // Semantic atoms (`type Token = string`) in shared/models are an architecture convention
       'sonarjs/redundant-type-aliases': 'off',
 
       // TypeScript conventions
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        {
+          'ts-check': false,
+          'ts-expect-error': true,
+          'ts-ignore': true,
+          'ts-nocheck': true,
+        },
+      ],
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@typescript-eslint/consistent-type-imports': [
         'error',

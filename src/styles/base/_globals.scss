@@ -1,5 +1,8 @@
+// Neutral base styles of HTML elements: box model, document typography and
+// colors, responsive images and heading margins. Visual design (headings,
+// form controls, buttons, focus…) belongs to each project — see
+// docs/architecture/styles.md.
 @use 'variables' as *;
-@use '../utils/index' as *;
 
 html {
   box-sizing: border-box;
@@ -30,66 +33,4 @@ h4,
 h5,
 h6 {
   margin: 0;
-}
-
-h1 {
-  color: $color-basic-black;
-  font-size: rem(24);
-  font-weight: 600;
-  line-height: rem(28.5);
-  margin-bottom: $spacing-2xl;
-}
-
-h2 {
-  color: $color-primary-500;
-  font-size: rem(20);
-  font-weight: 400;
-  line-height: normal;
-  margin-bottom: $spacing-md;
-}
-
-ul {
-  padding: 0;
-  list-style: none;
-}
-
-input {
-  color: $color-basic-black;
-}
-
-input,
-select,
-textarea {
-  padding: $spacing-3xs $spacing-2xs;
-  border: 1px solid $color-neutral-300;
-  border-radius: $border-radius-sm;
-  font: inherit;
-
-  &.is-invalid {
-    border-color: $color-error-500;
-  }
-}
-
-button {
-  padding: $spacing-3xs $spacing-xs;
-  border: 1px solid $color-primary-500;
-  border-radius: $border-radius-sm;
-  background-color: $color-primary-500;
-  color: $color-basic-white;
-  font: inherit;
-  cursor: pointer;
-
-  &:hover {
-    background-color: $color-primary-600;
-  }
-}
-
-:focus-visible {
-  outline: 2px solid $color-primary-400;
-  outline-offset: 2px;
-}
-
-.invalid-feedback {
-  color: $color-error-700;
-  font-size: rem(14);
 }

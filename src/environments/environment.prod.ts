@@ -1,5 +1,9 @@
-export const environment = {
+import type { Environment } from './environment.types';
+
+export const environment: Environment = {
   useMSW: false,
-  // PLACEHOLDER: replace with the real production API URL
-  api: 'https://api.example.com',
+  apis: {
+    // PLACEHOLDER: replace with the real production URL of the example API
+    exampleApi: 'https://example-api.example.com',
+  },
 };

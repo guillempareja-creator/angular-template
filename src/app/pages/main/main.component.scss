@@ -1,1 +1,13 @@
 @use 'imports' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3xs;
+}

@@ -1,5 +1,9 @@
-export const environment = {
-  // Local development: requests are served by the MSW fake backend
+import type { Environment } from './environment.types';
+
+export const environment: Environment = {
+  // Local development: the MSW fake backend serves every API
   useMSW: true,
-  api: '/api',
+  apis: {
+    exampleApi: '/example-api',
+  },
 };

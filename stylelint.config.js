@@ -1,6 +1,8 @@
 /** @type {import('stylelint').Config} */
 export default {
   extends: ['stylelint-config-standard-scss', 'stylelint-prettier/recommended'],
+  // No escape hatches: `stylelint-disable` comments are ignored (docs/architecture/quality.md)
+  ignoreDisables: true,
   rules: {
     'prettier/prettier': true,
     'rule-empty-line-before': [

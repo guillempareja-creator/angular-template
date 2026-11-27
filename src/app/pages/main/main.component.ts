@@ -6,12 +6,12 @@ import {
   signal,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ExampleService } from '@core/api/example/example.service';
-import type { GetExampleResponse } from '@core/api/example/example.types';
+import { ExampleService } from '@core/api/example-api/example/example.service';
+import type { GetExampleResponse } from '@core/api/example-api/example/example.types';
 
 /**
  * Template example page: shows the full flow
- * API service (`core/api/`) → signal → template with i18n.
+ * API service (`core/api/`) → signals → template with i18n.
  * Replace it with the first real screen of the application.
  */
 @Component({
@@ -27,6 +27,7 @@ export default class MainComponent implements OnInit {
 
   // Data
   public readonly example = signal<GetExampleResponse | null>(null);
+  public readonly isLoaded = signal<boolean>(false);
 
   // Methods
   public ngOnInit(): void {
@@ -36,5 +37,6 @@ export default class MainComponent implements OnInit {
   private async loadExample(): Promise<void> {
     const response = await this.exampleService.getExample();
     this.example.set(response);
+    this.isLoaded.set(true);
   }
 }

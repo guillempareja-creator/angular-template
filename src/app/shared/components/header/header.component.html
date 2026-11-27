@@ -1,12 +1,3 @@
 <div class="header-wrapper">
   <span class="app-name">{{ 'app.name' | translate }}</span>
-
-  @if (session(); as session) {
-    <div class="user">
-      <span>{{ session.username | ucfirst }}</span>
-      <button id="header-btn-logout" type="button" (click)="handleLogout()">
-        {{ 'common.logout' | translate }}
-      </button>
-    </div>
-  }
 </div>

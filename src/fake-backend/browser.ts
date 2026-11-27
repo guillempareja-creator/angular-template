@@ -1,11 +1,5 @@
 import { setupWorker } from 'msw/browser';
-import { loginHandlers } from './handlers/login';
-import { refreshTokenHandlers } from './handlers/refresh-token';
-import { exampleHandlers } from './handlers/example';
+import { exampleApiHandlers } from './handlers/example-api';
 
-// Service Worker with every handler. Register new endpoint families here.
-export const worker = setupWorker(
-  ...loginHandlers,
-  ...refreshTokenHandlers,
-  ...exampleHandlers,
-);
+// Service Worker with the handlers of every API. Register new APIs here.
+export const worker = setupWorker(...exampleApiHandlers);

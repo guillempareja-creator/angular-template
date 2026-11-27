@@ -1,0 +1,31 @@
+name: Copilot Setup Steps
+
+# Prepares the machine of the GitHub Copilot cloud agent before it starts a
+# task, so it can run `npm run check` before opening its pull request
+# (docs/architecture/quality.md §4). It also runs when this file changes, and
+# it can be tested manually from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or Copilot will not pick it up.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install the Playwright browser
+        run: npm run e2e:install

@@ -1,7 +1,7 @@
 /**
  * Architecture gate (`npm run lint:arch`). Enforces the layering described in
- * ARCHITECTURE.md: pages → shared/core, never the other way round; no cycles;
- * the fake backend is never imported by application code.
+ * docs/architecture/overview.md: pages → shared/core, never the other way
+ * round; no cycles; the fake backend is never imported by application code.
  *
  * @type {import('dependency-cruiser').IConfiguration}
  */

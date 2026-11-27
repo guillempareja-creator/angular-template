@@ -4,5 +4,9 @@
 
 <section>
   <h2>{{ 'main.exampleTitle' | translate }}</h2>
-  <p>{{ example()?.example ?? ('main.exampleEmpty' | translate) }}</p>
+  @if (isLoaded()) {
+    <p>{{ example()?.example }}</p>
+  } @else {
+    <p>{{ 'main.exampleLoading' | translate }}</p>
+  }
 </section>

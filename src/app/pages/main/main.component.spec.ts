@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
-import { ExampleService } from '@core/api/example/example.service';
+import { ExampleService } from '@core/api/example-api/example/example.service';
 import MainComponent from './main.component';
 
 describe('MainComponent', () => {
@@ -22,20 +22,20 @@ describe('MainComponent', () => {
 
     await fixture.whenStable();
 
+    const host = fixture.nativeElement as HTMLElement;
     expect(exampleService.getExample).toHaveBeenCalledTimes(1);
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'API data',
-    );
+    expect(host.textContent).toContain('API data');
+    expect(host.textContent).not.toContain('main.exampleLoading');
   });
 
-  it('renders the empty state while there is no data', async () => {
+  it('shows the loading text until the API answers', async () => {
     exampleService.getExample.mockReturnValue(new Promise(() => undefined));
     const fixture = TestBed.createComponent(MainComponent);
 
     await fixture.whenStable();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'main.exampleEmpty',
+      'main.exampleLoading',
     );
   });
 });

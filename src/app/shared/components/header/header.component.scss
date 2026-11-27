@@ -8,7 +8,6 @@
 .header-wrapper {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: $spacing-xs;
   min-height: rem(64);
   max-width: calc($page-max-width + $spacing-xl * 2);
@@ -19,10 +18,4 @@
 .app-name {
   font-weight: bold;
   color: $color-primary-700;
-}
-
-.user {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
 }

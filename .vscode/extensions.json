@@ -5,6 +5,8 @@
     "esbenp.prettier-vscode",
     "stylelint.vscode-stylelint",
     "vitest.explorer",
-    "ms-playwright.playwright"
+    "ms-playwright.playwright",
+    "github.copilot-chat",
+    "anthropic.claude-code"
   ]
 }
